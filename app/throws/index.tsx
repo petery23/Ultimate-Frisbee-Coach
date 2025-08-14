@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#4ECDC4',
+    color: '#4CAF50', // Changed from cyan to green
   },
   sectionCount: {
     fontSize: 14,

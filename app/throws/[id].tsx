@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
+import { StyleSheet, ScrollView, Alert, Image } from 'react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '../components/ThemedView';
@@ -59,7 +59,7 @@ export default function ThrowDetailScreen() {
     <ThemedView style={styles.container}>
       <Stack.Screen
         options={{
-          title: `Throw Details`,
+          title: throwRecord.name,
           headerTitleStyle: { fontWeight: '600' },
           headerRight: () => (
             <ThemedView style={{ flexDirection: 'row', gap: 8 }}>
@@ -78,24 +78,15 @@ export default function ThrowDetailScreen() {
       <ScrollView style={styles.scrollContainer}>
         <ThemedView style={styles.content}>
           
-          {/* Throw Info */}
-          <ThemedView style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Throw Information</ThemedText>
-            <ThemedView style={styles.infoItem}>
-              <ThemedText style={styles.infoLabel}>Name</ThemedText>
-              <ThemedText style={styles.infoValue}>{throwRecord.name}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.infoItem}>
-              <ThemedText style={styles.infoLabel}>Date</ThemedText>
-              <ThemedText style={styles.infoValue}>{throwRecord.date.toLocaleDateString()}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.infoItem}>
-              <ThemedText style={styles.infoLabel}>Favorite</ThemedText>
-              <Ionicons 
-                name={throwRecord.isFavorite ? "heart" : "heart-outline"} 
-                size={20} 
-                color={throwRecord.isFavorite ? "#FF6B6B" : accentColor} 
-              />
+          {/* Video Player Placeholder */}
+          <ThemedView style={styles.videoSection}>
+            <Image
+              source={require('../../assets/images/prev_throw_sample.jpg')}
+              style={styles.videoPlaceholder}
+              resizeMode="cover"
+            />
+            <ThemedView style={styles.videoControls}>
+              <Ionicons name="play-circle" size={48} color="rgba(255, 255, 255, 0.8)" />
             </ThemedView>
           </ThemedView>
 
@@ -170,6 +161,27 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
+  videoSection: {
+    marginBottom: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  videoPlaceholder: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#000',
+  },
+  videoControls: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
   section: {
     marginBottom: 24,
     padding: 16,
@@ -180,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#4ECDC4',
+    color: '#4CAF50', // Changed from cyan to green
   },
   infoItem: {
     flexDirection: 'row',
@@ -212,8 +224,8 @@ const styles = StyleSheet.create({
   },
   analysisValue: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#4ECDC4',
+    fontWeight: '600', // Made bold
+    color: '#4CAF50', // Changed from cyan to green
   },
   tipContainer: {
     flexDirection: 'row',
