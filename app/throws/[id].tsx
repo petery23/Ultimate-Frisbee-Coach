@@ -1,18 +1,62 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { StyleSheet, ScrollView, Alert, Image } from 'react-native';
-import { Stack, useLocalSearchParams, router } from 'expo-router';
+import { Stack, useLocalSearchParams, router, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { useThemeColor } from '../hooks/useThemeColor';
-import { getThrowById } from '../../lib/throwHistory';
+import { getThrowById, deleteThrow } from '../../lib/throwHistory';
 
 export default function ThrowDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const accentColor = useThemeColor({}, 'accent');
+  const navigation = useNavigation();
   
   // Get throw data
   const throwRecord = id ? getThrowById(id) : null;
+
+  // Show delete confirmation
+  const handleDelete = useCallback(() => {
+    if (!throwRecord) return;
+    
+    Alert.alert(
+      "Delete Throw",
+      `Are you sure you want to delete "${throwRecord.name}"?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: () => {
+            // Actually delete the throw from the data store
+            deleteThrow(throwRecord.id);
+            // Navigate back to the throws list
+            router.back();
+          }
+        }
+      ]
+    );
+  }, [throwRecord]);
+
+  // Update header when throwRecord is available
+  useEffect(() => {
+    if (throwRecord) {
+      console.log(`Setting header title to: ${throwRecord.name}`);
+      navigation.setOptions({
+        title: throwRecord.name,
+        headerTitleStyle: { fontWeight: '600' },
+        headerRight: () => (
+          <Ionicons 
+            name="trash-bin" 
+            size={20} 
+            color={accentColor}
+            onPress={handleDelete}
+            style={{ padding: 8 }}
+          />
+        ),
+      });
+    }
+  }, [throwRecord, navigation, handleDelete, accentColor]);
 
   // If throw not found, show error state
   if (!throwRecord) {
@@ -36,44 +80,9 @@ export default function ThrowDetailScreen() {
     );
   }
 
-  // Show delete confirmation
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Throw",
-      `Are you sure you want to delete the throw from ${throwRecord.date}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: () => {
-            // For now just go back, would implement actual deletion later
-            router.back();
-          }
-        }
-      ]
-    );
-  };
-
   return (
     <ThemedView style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: throwRecord.name,
-          headerTitleStyle: { fontWeight: '600' },
-          headerRight: () => (
-            <ThemedView style={{ flexDirection: 'row', gap: 8 }}>
-              <Ionicons 
-                name="trash" 
-                size={20} 
-                color="#FF6B6B" 
-                onPress={handleDelete}
-                style={{ padding: 4 }}
-              />
-            </ThemedView>
-          ),
-        }}
-      />
+      <Stack.Screen />
       
       <ScrollView style={styles.scrollContainer}>
         <ThemedView style={styles.content}>
