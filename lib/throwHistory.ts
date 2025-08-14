@@ -106,7 +106,11 @@ export function getThrowsSorted(): ThrowRecord[] {
 export function toggleFavorite(id: string): void {
   const throwRecord = mockThrowHistory.find(t => t.id === id);
   if (throwRecord) {
+    const oldState = throwRecord.isFavorite;
     throwRecord.isFavorite = !throwRecord.isFavorite;
+    console.log(`Toggled favorite for throw ${id}: ${oldState} -> ${throwRecord.isFavorite}`);
+  } else {
+    console.error(`Could not find throw with ID: ${id}`);
   }
 }
 

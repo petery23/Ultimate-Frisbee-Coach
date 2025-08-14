@@ -10,7 +10,7 @@ import { toggleFavorite, deleteThrow, updateThrowName } from '../../lib/throwHis
 
 interface ThrowCardProps {
   throwRecord: ThrowRecord;
-  onUpdate: () => void;
+  onUpdate: (throwId?: string, action?: 'favorite' | 'name' | 'delete') => void;
   onPress?: () => void; // Optional prop for navigation
 }
 
@@ -44,12 +44,10 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
 
   const handleFavoritePress = () => {
     try {
-      // Toggle the favorite directly on the object for immediate UI update
-      throwRecord.isFavorite = !throwRecord.isFavorite;
-      // Also update in the data store
+      // Update in the data store first
       toggleFavorite(throwRecord.id);
-      // Notify parent component of the change
-      onUpdate();
+      // Notify parent component with specific action
+      onUpdate(throwRecord.id, 'favorite');
     } catch (error) {
       console.error("Error toggling favorite:", error);
     }
@@ -62,15 +60,13 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
       (newName) => {
         if (newName && newName.trim()) {
           try {
-            // Update the name directly on the object for immediate UI update
             const oldName = throwRecord.name;
-            throwRecord.name = newName.trim();
             
-            // Also update in the data store
+            // Update in the data store
             updateThrowName(throwRecord.id, newName.trim());
             
             // Notify parent component of the change
-            onUpdate();
+            onUpdate(throwRecord.id, 'name');
             
             // Show confirmation
             Alert.alert(
@@ -100,7 +96,7 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
           style: 'destructive',
           onPress: () => {
             deleteThrow(throwRecord.id);
-            onUpdate();
+            onUpdate(throwRecord.id, 'delete');
           }
         }
       ]

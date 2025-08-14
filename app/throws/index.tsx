@@ -6,7 +6,7 @@ import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { ThrowRecord } from '../../types';
-import { getThrowsSorted } from '../../lib/throwHistory';
+import { getThrowsSorted, getThrowById } from '../../lib/throwHistory';
 import ThrowCard from '../../components/throws/ThrowCard';
 
 export default function ThrowsListScreen() {
@@ -38,8 +38,30 @@ export default function ThrowsListScreen() {
   };
 
   // Handle updates from ThrowCard actions
-  const handleThrowUpdate = () => {
-    loadThrows();
+  const handleThrowUpdate = (updatedThrowId?: string, action?: 'favorite' | 'name' | 'delete') => {
+    console.log(`handleThrowUpdate called with ID: ${updatedThrowId}, action: ${action}`);
+    
+    if (updatedThrowId && action === 'favorite') {
+      // For favorite toggles, get the updated state from the data store
+      const updatedThrow = getThrowById(updatedThrowId);
+      if (updatedThrow) {
+        setThrows(prevThrows => {
+          const updatedThrows = prevThrows.map(throw_ => 
+            throw_.id === updatedThrowId 
+              ? { ...throw_, isFavorite: updatedThrow.isFavorite }
+              : throw_
+          );
+          console.log(`Updated throws state - throw ${updatedThrowId} is now ${updatedThrow.isFavorite ? 'favorited' : 'unfavorited'}`);
+          return updatedThrows;
+        });
+      }
+    } else {
+      // For other actions, reload from data source
+      console.log('Reloading throws from data source...');
+      setTimeout(() => {
+        loadThrows();
+      }, 0);
+    }
   };
 
   // Render individual throw item
