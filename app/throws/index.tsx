@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { StyleSheet, SectionList, RefreshControl } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '../components/ThemedView';
@@ -13,6 +13,10 @@ export default function ThrowsListScreen() {
   const [throws, setThrows] = useState<ThrowRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const accentColor = useThemeColor({}, 'accent');
+
+  // Separate favorites and regular throws
+  const favoriteThrows = throws.filter(throw_ => throw_.isFavorite);
+  const regularThrows = throws.filter(throw_ => !throw_.isFavorite);
 
   // Load throws data
   const loadThrows = () => {
@@ -52,6 +56,7 @@ export default function ThrowsListScreen() {
               : throw_
           );
           console.log(`Updated throws state - throw ${updatedThrowId} is now ${updatedThrow.isFavorite ? 'favorited' : 'unfavorited'}`);
+          console.log(`Favorites count: ${updatedThrows.filter(t => t.isFavorite).length}`);
           return updatedThrows;
         });
       }
@@ -62,9 +67,7 @@ export default function ThrowsListScreen() {
         loadThrows();
       }, 0);
     }
-  };
-
-  // Render individual throw item
+  };  // Render individual throw item
   const renderItem = ({ item }: { item: ThrowRecord }) => (
     <ThrowCard 
       throwRecord={item} 
@@ -72,13 +75,23 @@ export default function ThrowsListScreen() {
     />
   );
 
+  // Render section header
+  const renderSectionHeader = ({ section }: { section: any }) => (
+    <ThemedView style={styles.sectionHeader}>
+      <ThemedText style={styles.sectionTitle}>{section.title}</ThemedText>
+      <ThemedText style={styles.sectionCount}>
+        {section.data.length} {section.data.length === 1 ? 'throw' : 'throws'}
+      </ThemedText>
+    </ThemedView>
+  );
+
   // Empty state
   const renderEmptyState = () => (
     <ThemedView style={styles.emptyContainer}>
       <Ionicons name="disc" size={64} color={accentColor} />
-      <ThemedText style={styles.emptyTitle}>No Previous Throws</ThemedText>
+      <ThemedText style={styles.emptyTitle}>No Throws Yet</ThemedText>
       <ThemedText style={styles.emptyText}>
-        Record a throw to analyze your technique and save it here
+        Record your first throw to analyze your technique and start building your history
       </ThemedText>
     </ThemedView>
   );
@@ -92,9 +105,19 @@ export default function ThrowsListScreen() {
         }}
       />
       
-      <FlatList
-        data={throws}
+      <SectionList
+        sections={[
+          ...(favoriteThrows.length > 0 ? [{
+            title: "⭐ Favorites",
+            data: favoriteThrows,
+          }] : []),
+          ...(regularThrows.length > 0 ? [{
+            title: "All Throws",
+            data: regularThrows,
+          }] : []),
+        ]}
         renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
@@ -119,6 +142,25 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
     flexGrow: 1,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    paddingVertical: 12,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#4ECDC4',
+  },
+  sectionCount: {
+    fontSize: 14,
+    opacity: 0.7,
+    fontWeight: '500',
   },
   emptyContainer: {
     flex: 1,
