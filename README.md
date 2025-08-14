@@ -1,50 +1,127 @@
-# Welcome to your Expo app 👋
+# Ultimate Disc Golf Throw Analyzer
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native/Expo mobile app that uses computer vision to analyze disc golf throwing technique and provide feedback for improvement.
 
-## Get started
+## Features
 
-1. Install dependencies
+### 📱 Mobile App (React Native + Expo)
+- **Throw Recording**: Record your disc golf throws with guided setup instructions
+- **Throw History**: View and manage your previous throws with favorites
+- **Detailed Analysis**: View comprehensive analysis results for each throw
+- **User-Friendly UI**: Clean, themed interface with intuitive navigation
 
-   ```bash
-   npm install
-   ```
+### 🔬 Analysis Backend (Python + MediaPipe)
+- **Pose Detection**: Uses MediaPipe to extract body landmarks from video
+- **Biomechanical Analysis**: Calculates key metrics like:
+  - Hip-shoulder separation angle
+  - Reachback distance
+  - Elbow peak timing
+  - Wrist speed at release
+- **Smart Coaching Tips**: Provides personalized feedback based on analysis
 
-2. Start the app
+## Tech Stack
 
-   ```bash
-   npx expo start
-   ```
+### Frontend
+- **React Native** with Expo Router for navigation
+- **TypeScript** for type safety
+- **Expo AV** for video recording and playback
+- **Vector Icons** for UI elements
+- **Custom themed components** for consistent styling
 
-In the output, you'll find options to open the app in a
+### Backend
+- **Python Flask** server for video processing
+- **MediaPipe** for pose estimation and landmark detection
+- **NumPy** for mathematical calculations
+- **OpenCV** for video processing
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+petery-app/
+├── app/                          # React Native screens
+│   ├── components/              # Reusable UI components
+│   ├── throws/                  # Throw history and detail views
+│   ├── index.tsx               # Home screen
+│   ├── instructions.tsx        # Recording setup guide
+│   ├── record.tsx             # Video recording screen
+│   └── results.tsx            # Analysis results display
+├── components/                  # Global components
+│   ├── throws/                 # Throw-specific components
+│   └── ui/                     # General UI components
+├── lib/                        # Utility functions and data
+│   ├── api.ts                 # Backend API communication
+│   ├── throwHistory.ts        # Throw data management
+│   └── sampleData.ts          # Mock data for development
+├── server/                     # Python analysis backend
+│   ├── infer_server.py        # Flask server main file
+│   ├── analysis.py            # Core analysis algorithms
+│   ├── extract_landmarks.py   # MediaPipe pose detection
+│   └── features.py            # Feature extraction utilities
+├── assets/                     # Images and static files
+└── types.ts                   # TypeScript type definitions
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-## Learn more
+### Prerequisites
+- Node.js 18+ 
+- Python 3.8+
+- Expo CLI (`npm install -g @expo/cli`)
 
-To learn more about developing your project with Expo, look at the following resources:
+### Frontend Setup
+```bash
+# Install dependencies
+npm install
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Start the Expo development server
+npx expo start
+```
 
-## Join the community
+### Backend Setup
+```bash
+# Navigate to server directory
+cd server
 
-Join our community of developers creating universal apps.
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Start the analysis server
+python infer_server.py
+```
+
+## Usage
+
+1. **Record a Throw**: Follow the guided setup to position your phone and record your disc golf throw
+2. **Analysis**: The app sends your video to the Python backend for biomechanical analysis
+3. **Review Results**: View detailed metrics and coaching tips for your technique
+4. **Track Progress**: Save throws to your history and mark favorites for comparison
+
+## Analysis Metrics
+
+The app analyzes several key biomechanical factors:
+
+- **Hip-Shoulder Separation**: Measures the rotation differential between hips and shoulders
+- **Reachback Distance**: Calculates how far back you reach before initiating the throw
+- **Elbow Peak Timing**: Determines when your elbow reaches its peak angle during the throw
+- **Wrist Speed**: Measures wrist velocity at the point of release
+
+## Development Status
+
+This is an active development project. Current features include:
+- ✅ Video recording with guided setup
+- ✅ Python analysis backend with MediaPipe
+- ✅ Throw history and management
+- ✅ Detailed analysis results display
+- ✅ Clean UI with bullet-point instructions
+
+## Contributing
+
+This is a personal project, but feedback and suggestions are welcome! Please open issues for bugs or feature requests.
+
+## License
+
+This project is for educational and personal use.
