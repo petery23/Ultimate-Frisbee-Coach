@@ -29,7 +29,9 @@ export default function ThrowDetailScreen() {
           style: "destructive",
           onPress: () => {
             // Actually delete the throw from the data store
+            console.log(`Deleting throw with ID: ${throwRecord.id}`);
             deleteThrow(throwRecord.id);
+            console.log('Throw deleted, navigating back...');
             // Navigate back to the throws list
             router.back();
           }

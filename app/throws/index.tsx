@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, SectionList, RefreshControl } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '../components/ThemedView';
 import { ThemedText } from '../components/ThemedText';
@@ -33,6 +33,14 @@ export default function ThrowsListScreen() {
   useEffect(() => {
     loadThrows();
   }, []);
+
+  // Reload data when screen comes into focus (e.g., returning from detail view)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Throws screen focused, reloading data...');
+      loadThrows();
+    }, [])
+  );
 
   // Pull to refresh handler
   const onRefresh = () => {
