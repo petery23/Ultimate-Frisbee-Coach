@@ -191,4 +191,46 @@ export const instructionStyles = StyleSheet.create({
     minWidth: 180, // Reduced min width
     alignSelf: 'center', // Center the button wrapper
   },
+  // New animated step styles
+  stepContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  stepNumber: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  stepNumberText: {
+    color: '#fff',
+    fontSize: webFontSize(20),
+    fontWeight: '700',
+  },
+  stepContent: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  stepTitle: {
+    fontSize: webFontSize(18),
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  stepDescription: {
+    fontSize: webFontSize(15),
+    lineHeight: Platform.OS === 'web' ? 26 : 22,
+    textAlign: 'center',
+    opacity: 0.8,
+    maxWidth: 300,
+  },
 });

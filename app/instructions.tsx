@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { ScrollView, Image, useColorScheme, View, Platform } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import { ScrollView, Image, useColorScheme, View, Platform, Animated } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemedView } from './components/ThemedView';
@@ -7,11 +7,11 @@ import { ThemedText } from './components/ThemedText';
 import { useThemeColor } from './hooks/useThemeColor';
 import PrimaryButton from '../components/PrimaryButton';
 import { instructionStyles } from './styles/instructionStyles';
-import { MeasurementItem, InstructionItem } from './components/InstructionComponents';
 
 export default function InstructionsScreen() {
   const colorScheme = useColorScheme();
   const backgroundColor = useThemeColor({}, 'background');
+  const accentColor = useThemeColor({}, 'accent');
   const [isNavigating, setIsNavigating] = useState(false);
   
   const handleStartRecording = useCallback(() => {
@@ -25,6 +25,55 @@ export default function InstructionsScreen() {
       setIsNavigating(false);
     }, 1000);
   }, [isNavigating]);
+
+  const AnimatedStep = ({ number, title, description, delay = 0 }: { 
+    number: number; 
+    title: string; 
+    description: string; 
+    delay?: number;
+  }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const translateAnim = useRef(new Animated.Value(30)).current;
+
+    React.useEffect(() => {
+      const timer = setTimeout(() => {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateAnim, {
+            toValue: 0,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, delay);
+
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <Animated.View 
+        style={[
+          instructionStyles.stepContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: translateAnim }],
+          }
+        ]}
+      >
+        <View style={[instructionStyles.stepNumber, { backgroundColor: accentColor }]}>
+          <ThemedText style={instructionStyles.stepNumberText}>{number}</ThemedText>
+        </View>
+        <View style={instructionStyles.stepContent}>
+          <ThemedText style={instructionStyles.stepTitle}>{title}</ThemedText>
+          <ThemedText style={instructionStyles.stepDescription}>{description}</ThemedText>
+        </View>
+      </Animated.View>
+    );
+  };
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -44,61 +93,40 @@ export default function InstructionsScreen() {
         <View style={instructionStyles.container}>
           <ThemedText style={instructionStyles.title}>How to Record Your Throw</ThemedText>
 
-          <ThemedText style={instructionStyles.sectionTitle}>What We Measure</ThemedText>
-          
-          <MeasurementItem 
-            title="Hip-Shoulder Separation" 
-            description="The rotational difference between your hips and shoulders at release. Indicates proper kinetic chain sequencing." 
+          <AnimatedStep 
+            number={1}
+            title="Position Camera at 90°" 
+            description="Place your camera perpendicular to your throwing direction for a clear side profile"
+            delay={200}
           />
           
-          <MeasurementItem 
-            title="Reachback Distance" 
-            description="How far your throwing arm extends behind your body. Helps generate power and proper disc path." 
+          <AnimatedStep 
+            number={2}
+            title="Set Camera Height" 
+            description="Position at chest/shoulder height to avoid distorting joint angle measurements"
+            delay={400}
           />
           
-          <MeasurementItem 
-            title="Elbow Peak Timing" 
-            description="When your elbow reaches maximum angular velocity relative to release. Optimal timing improves throw efficiency." 
+          <AnimatedStep 
+            number={3}
+            title="Find the Right Distance" 
+            description="Stand 4-6 meters away so your full body is visible but not too small"
+            delay={600}
           />
           
-          <MeasurementItem 
-            title="Wrist Speed" 
-            description="The speed of your wrist at release. Correlates with throw power and spin." 
+          <AnimatedStep 
+            number={4}
+            title="Check Your Lighting" 
+            description="Ensure good lighting conditions for accurate body landmark detection"
+            delay={800}
           />
           
-          <ThemedText style={instructionStyles.sectionTitle}>Recording Instructions</ThemedText>
-          
-          <View style={instructionStyles.instructionsContainer}>
-            <InstructionItem 
-              number="1" 
-              instruction="Position camera at 90° to throwing direction" 
-              detail="The analysis requires a clear side profile of your throw"
-            />
-            
-            <InstructionItem 
-              number="2" 
-              instruction="Place camera at chest/shoulder height" 
-              detail="Too high or low will distort joint angle measurements"
-            />
-            
-            <InstructionItem 
-              number="3" 
-              instruction="Stand 4-6 meters from camera" 
-              detail="Full body should be visible but not too small in frame"
-            />
-            
-            <InstructionItem 
-              number="4" 
-              instruction="Ensure good lighting" 
-              detail="Helps with accurate body landmark detection"
-            />
-            
-            <InstructionItem 
-              number="5" 
-              instruction="Wear contrasting clothing" 
-              detail="Makes it easier to detect your joints and movements"
-            />
-          </View>
+          <AnimatedStep 
+            number={5}
+            title="Wear Contrasting Clothes" 
+            description="Choose clothing that contrasts with your background for better joint detection"
+            delay={1000}
+          />
 
           {/* Top-down view diagram */}
           <View style={instructionStyles.imageContainer}>
