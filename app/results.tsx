@@ -1,11 +1,13 @@
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import type { AnalysisResult } from "../types";
 import { createThrowFromAnalysis } from "../lib/throwHistory";
+import { useNavigationDebounce } from "./hooks/useNavigationDebounce";
 import PrimaryButton from "../components/PrimaryButton";
 
 export default function Results() {
   const params = useLocalSearchParams<{ data?: string }>();
+  const navigation = useNavigationDebounce(500);
   let result: AnalysisResult | null = null;
 
   try {
@@ -25,14 +27,14 @@ export default function Results() {
     try {
       const newThrow = createThrowFromAnalysis(analysisResult, "");
       console.log(`Added throw to library: ${newThrow.name} (ID: ${newThrow.id})`);
-      router.replace("/throws");
+      navigation.replace("/throws");
     } catch (error) {
       Alert.alert("Error", "Failed to save throw to library");
     }
   };
 
   const handleDiscard = () => {
-    router.replace("/throws");
+    navigation.replace("/throws");
   };
 
   return (

@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useRef } from 'react';
+import { StyleSheet, View, TouchableOpacity, Alert, Image, Animated } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { ThemedText } from '../../app/components/ThemedText';
 import { ThemedView } from '../../app/components/ThemedView';
 import { useThemeColor } from '../../app/hooks/useThemeColor';
@@ -19,6 +20,9 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
   const textColor = useThemeColor({}, 'text');
   const secondaryColor = useThemeColor({}, 'secondary');
 
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const favoriteScaleAnim = useRef(new Animated.Value(1)).current;
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
@@ -29,7 +33,25 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
     });
   };
 
+  const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Animated.spring(scaleAnim, {
+      toValue: 0.98,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      tension: 300,
+      friction: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (onPress) {
       // Use the provided onPress handler if available
       onPress();
@@ -43,6 +65,27 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
   };
 
   const handleFavoritePress = () => {
+    // Enhanced haptic feedback for favorite
+    if (throwRecord.isFavorite) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+
+    // Animate favorite button
+    Animated.sequence([
+      Animated.timing(favoriteScaleAnim, {
+        toValue: 1.3,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(favoriteScaleAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     try {
       // Update in the data store first
       toggleFavorite(throwRecord.id);
@@ -104,37 +147,54 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
   };
 
   return (
-    <ThemedView variant="card" style={styles.card}>
-      <TouchableOpacity style={styles.cardContent} onPress={handlePress} activeOpacity={0.7}>
-        <View style={styles.thumbnailContainer}>
-          <Image
-            source={require('../../assets/images/prev_throw_sample.jpg')}
-            style={styles.thumbnail}
-            resizeMode="cover"
-          />
-        </View>
-        
-        <View style={styles.infoContainer}>
-          <View style={styles.nameRow}>
-            <ThemedText style={styles.nameText} numberOfLines={1} ellipsizeMode="tail">
-              {throwRecord.name}
-            </ThemedText>
-            <TouchableOpacity onPress={handleFavoritePress} style={styles.starButton}>
-              <Ionicons 
-                name={throwRecord.isFavorite ? 'star' : 'star-outline'} 
-                size={24} 
-                color={throwRecord.isFavorite ? '#FFD700' : secondaryColor}
-              />
-            </TouchableOpacity>
+    <Animated.View
+      style={{
+        transform: [{ scale: scaleAnim }],
+      }}
+    >
+      <ThemedView variant="card" style={styles.card}>
+        <TouchableOpacity 
+          style={styles.cardContent} 
+          onPress={handlePress} 
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={1}
+        >
+          <View style={styles.thumbnailContainer}>
+            <Image
+              source={require('../../assets/images/prev_throw_sample.jpg')}
+              style={styles.thumbnail}
+              resizeMode="cover"
+            />
           </View>
+          
+          <View style={styles.infoContainer}>
+            <View style={styles.nameRow}>
+              <ThemedText style={styles.nameText} numberOfLines={1} ellipsizeMode="tail">
+                {throwRecord.name}
+              </ThemedText>
+              <TouchableOpacity onPress={handleFavoritePress} style={styles.starButton}>
+                <Animated.View
+                  style={{
+                    transform: [{ scale: favoriteScaleAnim }],
+                  }}
+                >
+                  <Ionicons 
+                    name={throwRecord.isFavorite ? 'star' : 'star-outline'} 
+                    size={24} 
+                    color={throwRecord.isFavorite ? '#FFD700' : secondaryColor}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+            </View>
 
-          <ThemedText style={styles.dateText}>
-            {formatDate(throwRecord.date)}
-          </ThemedText>
+            <ThemedText style={styles.dateText}>
+              {formatDate(throwRecord.date)}
+            </ThemedText>
 
-          {/* Preview of stats */}
-          <View style={styles.statsPreview}>
-            <View style={styles.statItem}>
+            {/* Preview of stats */}
+            <View style={styles.statsPreview}>
+              <View style={styles.statItem}>
               <ThemedText style={styles.statValue}>
                 {throwRecord.analysisResult.hipShoulderSeparationDeg?.toFixed(1)}°
               </ThemedText>
@@ -162,6 +222,7 @@ export default function ThrowCard({ throwRecord, onUpdate, onPress }: ThrowCardP
         </TouchableOpacity>
       </View>
     </ThemedView>
+    </Animated.View>
   );
 }
 

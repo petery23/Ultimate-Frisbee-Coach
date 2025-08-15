@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { View, StyleSheet, Alert, Button, Pressable, Text } from "react-native";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import { router } from "expo-router";
+import * as Haptics from 'expo-haptics';
 import { uploadVideo } from "../lib/api";
 import FullScreenLoader from "../components/FullScreenLoader";
 import { ThemedText } from "./components/ThemedText";
@@ -43,6 +44,9 @@ export default function RecordScreen() {
   const startRecording = async () => {
     if (!camRef.current) return;
     
+    // Haptic feedback for start
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    
     // Start countdown
     setCountdown(3);
     
@@ -56,6 +60,10 @@ export default function RecordScreen() {
           actuallyStartRecording();
           return 0;
         }
+        // Haptic feedback for each countdown tick
+        if (prev > 1) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
         return prev - 1;
       });
     }, 1000);
@@ -65,28 +73,40 @@ export default function RecordScreen() {
 
   const actuallyStartRecording = async () => {
     if (!camRef.current) return;
+    
+    // Success haptic for recording start
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
     try {
       setIsRecording(true);
       const video = await camRef.current.recordAsync({ maxDuration: 4 });
       setIsRecording(false);
       setIsLoading(true);
+      
+      // Completion haptic
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       try {
         const metrics = await uploadVideo((video as any).uri);
         const data = encodeURIComponent(JSON.stringify(metrics));
         router.push({ pathname: "/results", params: { data } });
       } catch (e: any) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Alert.alert("Upload Failed", e.message ?? String(e));
       } finally {
         setIsLoading(false);
       }
     } catch (e: any) {
       setIsRecording(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert("Recording Error", e.message ?? String(e));
     }
   };
 
   const cancelRecording = () => {
+    // Light haptic for cancel
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
     // Clear countdown timer if running
     if (countdownInterval) {
       clearInterval(countdownInterval);

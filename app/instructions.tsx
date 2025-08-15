@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { ScrollView, Image, useColorScheme, View, Platform, Animated } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemedView } from './components/ThemedView';
 import { ThemedText } from './components/ThemedText';
 import { useThemeColor } from './hooks/useThemeColor';
+import { useNavigationDebounce } from './hooks/useNavigationDebounce';
 import PrimaryButton from '../components/PrimaryButton';
 import { instructionStyles } from './styles/instructionStyles';
 
@@ -12,19 +13,11 @@ export default function InstructionsScreen() {
   const colorScheme = useColorScheme();
   const backgroundColor = useThemeColor({}, 'background');
   const accentColor = useThemeColor({}, 'accent');
-  const [isNavigating, setIsNavigating] = useState(false);
+  const navigation = useNavigationDebounce(500);
   
   const handleStartRecording = useCallback(() => {
-    if (isNavigating) return;
-    
-    setIsNavigating(true);
-    router.push('/record');
-    
-    // Reset after a timeout
-    setTimeout(() => {
-      setIsNavigating(false);
-    }, 1000);
-  }, [isNavigating]);
+    navigation.push('/record');
+  }, [navigation]);
 
   const AnimatedStep = ({ number, title, description, delay = 0 }: { 
     number: number; 
@@ -168,7 +161,6 @@ export default function InstructionsScreen() {
               <PrimaryButton 
                 label="Start Recording!" 
                 onPress={handleStartRecording}
-                disabled={isNavigating}
               />
             </View>
           </View>
