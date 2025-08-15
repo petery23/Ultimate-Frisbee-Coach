@@ -18,7 +18,7 @@ export default function InstructionsScreen() {
     if (isNavigating) return;
     
     setIsNavigating(true);
-    router.replace('/record');
+    router.push('/record');
     
     // Reset after a timeout
     setTimeout(() => {
@@ -141,16 +141,6 @@ export default function InstructionsScreen() {
                 label="Start Recording!" 
                 onPress={handleStartRecording}
                 disabled={isNavigating}
-              />
-            </View>
-            
-            <View style={instructionStyles.buttonWrapper}>
-              <PrimaryButton 
-                label="Go Back"
-                onPress={() => router.replace('/')}
-                disabled={isNavigating}
-                variant="secondary"
-                style={{marginTop: 12}}
               />
             </View>
           </View>

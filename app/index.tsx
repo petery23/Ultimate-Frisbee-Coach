@@ -30,7 +30,7 @@ export default function Index() {
       <View style={styles.buttonContainer}>
         <PrimaryButton 
           label="Record a throw" 
-          onPress={() => router.replace("/instructions")}
+          onPress={() => router.push("/instructions")}
         />
       </View>
       

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { View, StyleSheet, Alert, Button, Pressable } from "react-native";
+import { View, StyleSheet, Alert, Button, Pressable, Text } from "react-native";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import { router } from "expo-router";
 import { uploadVideo } from "../lib/api";
@@ -20,6 +20,8 @@ export default function RecordScreen() {
 
   const [isRecording, setIsRecording] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0); // 0 = not counting, 3,2,1 = countdown
+  const [countdownInterval, setCountdownInterval] = useState<number | null>(null);
 
   if (!camPerm || !micPerm) {
     return <ThemedView style={styles.center}><ThemedText>Checking permissions…</ThemedText></ThemedView>;
@@ -40,6 +42,29 @@ export default function RecordScreen() {
 
   const startRecording = async () => {
     if (!camRef.current) return;
+    
+    // Start countdown
+    setCountdown(3);
+    
+    // Countdown timer
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setCountdownInterval(null);
+          // Start actual recording after countdown
+          actuallyStartRecording();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    setCountdownInterval(interval);
+  };
+
+  const actuallyStartRecording = async () => {
+    if (!camRef.current) return;
     try {
       setIsRecording(true);
       const video = await camRef.current.recordAsync({ maxDuration: 4 });
@@ -49,7 +74,7 @@ export default function RecordScreen() {
       try {
         const metrics = await uploadVideo((video as any).uri);
         const data = encodeURIComponent(JSON.stringify(metrics));
-        router.replace({ pathname: "/results", params: { data } });
+        router.push({ pathname: "/results", params: { data } });
       } catch (e: any) {
         Alert.alert("Upload Failed", e.message ?? String(e));
       } finally {
@@ -61,8 +86,21 @@ export default function RecordScreen() {
     }
   };
 
-  const stopRecording = () => {
-    if (camRef.current && isRecording) camRef.current.stopRecording();
+  const cancelRecording = () => {
+    // Clear countdown timer if running
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      setCountdownInterval(null);
+    }
+    
+    // Stop recording if in progress
+    if (camRef.current && isRecording) {
+      camRef.current.stopRecording();
+    }
+    
+    // Reset all states back to initial
+    setCountdown(0);
+    setIsRecording(false);
   };
 
   return (
@@ -74,30 +112,38 @@ export default function RecordScreen() {
         mode="video"
         videoQuality="1080p"
       >
+        {/* Centered countdown overlay */}
+        {countdown > 0 && (
+          <View style={styles.centerCountdown}>
+            <View style={styles.countdownBackground}>
+              <Text style={styles.countdownText}>{countdown}</Text>
+            </View>
+          </View>
+        )}
+        
+        {/* Bottom controls */}
         <View style={styles.overlay}>
           <ThemedText style={styles.hint}>Side view • chest height • 4–6m away</ThemedText>
-          <Pressable
-            onPress={isRecording ? stopRecording : startRecording}
-            style={[styles.recBtn, { backgroundColor: buttonBgColor }]}
-          >
-            <ThemedText style={{ color: buttonTextColor, fontWeight: '600' }}>
-              {isRecording ? "Stop" : "Start 4s recording"}
-            </ThemedText>
-          </Pressable>
           
-          {/* Go back button */}
-          {!isRecording && (
-            <View style={{marginTop: 16}}>
-              <Pressable
-                onPress={() => router.replace('/instructions')}
-                style={[styles.backBtn]}
-              >
-                <ThemedText style={{ color: '#FFF', fontWeight: '500' }}>
-                  Go Back to Instructions
-                </ThemedText>
-              </Pressable>
-            </View>
-          )}
+          {countdown === 0 && !isRecording ? (
+            <Pressable
+              onPress={startRecording}
+              style={[styles.recBtn, { backgroundColor: buttonBgColor }]}
+            >
+              <ThemedText style={{ color: buttonTextColor, fontWeight: '600' }}>
+                Start 4s recording
+              </ThemedText>
+            </Pressable>
+          ) : (countdown > 0 || isRecording) ? (
+            <Pressable
+              onPress={cancelRecording}
+              style={[styles.recBtn, styles.cancelBtn]}
+            >
+              <ThemedText style={{ color: '#fff', fontWeight: '600' }}>
+                Cancel
+              </ThemedText>
+            </Pressable>
+          ) : null}
         </View>
       </CameraView>
       {isLoading && <FullScreenLoader />}
@@ -110,5 +156,36 @@ const styles = StyleSheet.create({
   overlay: { position: "absolute", bottom: 32, left: 0, right: 0, alignItems: "center", gap: 8 },
   hint: { color: "#fff", backgroundColor: "#0009", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginBottom: 8 },
   recBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, overflow: "hidden", alignItems: "center" },
-  backBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, overflow: "hidden", alignItems: "center", backgroundColor: "#0009" },
+  recordingButtons: { 
+    flexDirection: "row", 
+    gap: 12,
+    alignItems: "center",
+  },
+  cancelBtn: {
+    backgroundColor: "#666",
+  },
+  centerCountdown: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  countdownBackground: {
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  countdownText: {
+    fontSize: 120,
+    fontWeight: "900",
+    color: "#fff",
+    textAlign: "center",
+  },
 });

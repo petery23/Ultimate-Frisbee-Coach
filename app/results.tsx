@@ -1,6 +1,7 @@
-import { useLocalSearchParams, Link } from "expo-router";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import type { AnalysisResult } from "../types";
+import { createThrowFromAnalysis } from "../lib/throwHistory";
 import PrimaryButton from "../components/PrimaryButton";
 
 export default function Results() {
@@ -14,6 +15,25 @@ export default function Results() {
   } catch (e) {
     // If parse fails, keep result null
   }
+
+  const handleAddToLibrary = (analysisResult: AnalysisResult | null) => {
+    if (!analysisResult) {
+      Alert.alert("Error", "No analysis data to save");
+      return;
+    }
+    
+    try {
+      const newThrow = createThrowFromAnalysis(analysisResult, "");
+      console.log(`Added throw to library: ${newThrow.name} (ID: ${newThrow.id})`);
+      router.replace("/throws");
+    } catch (error) {
+      Alert.alert("Error", "Failed to save throw to library");
+    }
+  };
+
+  const handleDiscard = () => {
+    router.replace("/throws");
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -35,9 +55,15 @@ export default function Results() {
       )}
 
       <View style={styles.buttonContainer}>
-        <Link href="/" replace asChild>
-          <PrimaryButton label="Back to Home" />
-        </Link>
+        <PrimaryButton 
+          label="Add to Throw Library" 
+          onPress={() => handleAddToLibrary(result)}
+        />
+        <View style={styles.buttonSpacing} />
+        <PrimaryButton 
+          label="Discard Throw" 
+          onPress={handleDiscard}
+        />
       </View>
     </ScrollView>
   );
@@ -68,5 +94,8 @@ const styles = StyleSheet.create({
     width: 'auto',
     maxWidth: 220,
     alignSelf: 'center',
+  },
+  buttonSpacing: {
+    height: 12,
   },
 });

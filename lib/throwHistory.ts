@@ -1,4 +1,4 @@
-import { ThrowRecord } from '../types';
+import { ThrowRecord, AnalysisResult } from '../types';
 
 // Ensure we always have sample data loaded for displaying in the app
 // This array will be modified by the app's CRUD operations
@@ -126,6 +126,43 @@ export function deleteThrow(id: string): void {
   if (index !== -1) {
     mockThrowHistory.splice(index, 1);
   }
+}
+
+// Function to add a new throw record
+export function addThrow(throwRecord: Omit<ThrowRecord, 'id'>): ThrowRecord {
+  // Generate a unique ID
+  const id = (mockThrowHistory.length + 1).toString();
+  
+  const newThrow: ThrowRecord = {
+    ...throwRecord,
+    id,
+  };
+  
+  // Add to the beginning of the array (most recent first)
+  mockThrowHistory.unshift(newThrow);
+  
+  console.log(`Added new throw: ${newThrow.name} (ID: ${id})`);
+  return newThrow;
+}
+
+// Function to create a throw record from analysis results
+export function createThrowFromAnalysis(
+  analysisResult: AnalysisResult, 
+  videoUri: string,
+  customName?: string
+): ThrowRecord {
+  const now = new Date();
+  const defaultName = `Throw ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  
+  const throwData = {
+    name: customName || defaultName,
+    date: now,
+    videoUri,
+    isFavorite: false,
+    analysisResult,
+  };
+  
+  return addThrow(throwData);
 }
 
 // Function to get a specific throw by ID from mockThrowHistory only

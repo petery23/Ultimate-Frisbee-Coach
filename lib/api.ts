@@ -1,7 +1,7 @@
 import type { AnalysisResult } from "../types";
 
 // Set this to your computer's LAN IP running Flask, e.g., http://192.168.1.12:5000
-const API_BASE = "http://127.0.0.1:5000";
+const API_BASE = "http://172.20.10.9:5000";
 
 interface ReactNativeFile {
   uri: string;
